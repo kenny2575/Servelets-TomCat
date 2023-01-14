@@ -1,14 +1,10 @@
 package ru.netology.servlet;
 
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import ru.netology.controller.PostController;
-import ru.netology.repository.PostRepository;
-import ru.netology.service.PostService;
-
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-
 public class MainServlet extends HttpServlet {
     private PostController controller;
 
@@ -18,13 +14,13 @@ public class MainServlet extends HttpServlet {
 
     @Override
     public void init() {
-        final var repository = new PostRepository();
-        final var service = new PostService(repository);
-        controller = new PostController(service);
+
+        final var context = new AnnotationConfigApplicationContext("ru.netology");
+        controller = (PostController) context.getBean("postController");
     }
 
     @Override
-    protected void service(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    protected void service(HttpServletRequest req, HttpServletResponse resp){
         // если деплоились в root context, то достаточно этого
         try {
             final var path = req.getRequestURI();
@@ -42,8 +38,7 @@ public class MainServlet extends HttpServlet {
             }
 
             if (path.matches("/api/posts/\\d+")) {
-                long parseLong = Long.parseLong(path.substring(path.lastIndexOf("/") + 1));
-                final var id = parseLong;
+                final var id = Long.parseLong(path.substring(path.lastIndexOf("/") + 1));
                 if (method.equals(GET)) {
                     controller.getById(id, resp);
                     return;
