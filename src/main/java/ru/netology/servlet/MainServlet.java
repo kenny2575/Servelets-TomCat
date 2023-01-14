@@ -29,33 +29,29 @@ public class MainServlet extends HttpServlet {
         try {
             final var path = req.getRequestURI();
             final var method = req.getMethod();
-            long parseLong = Long.parseLong(path.substring(path.lastIndexOf("/")));
 
-            if (method.equals(GET)) {
-                resp.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
-                return;
-            }
             // primitive routing
             if (method.equals(GET) && path.equals("/api/posts")) {
                 controller.all(resp);
                 return;
             }
 
-            if (method.equals(GET) && path.matches("/api/posts/\\d+")) {
-                // easy way
-                final var id = parseLong;
-                controller.getById(id, resp);
-                return;
-            }
             if (method.equals(POST) && path.equals("/api/posts")) {
                 controller.save(req.getReader(), resp);
                 return;
             }
-            if (method.equals(DELETE) && path.matches("/api/posts/\\d+")) {
-                // easy way
+
+            if (path.matches("/api/posts/\\d+")) {
+                long parseLong = Long.parseLong(path.substring(path.lastIndexOf("/") + 1));
                 final var id = parseLong;
-                controller.removeById(id, resp);
-                return;
+                if (method.equals(GET)) {
+                    controller.getById(id, resp);
+                    return;
+                }
+                if (method.equals(DELETE)){
+                    controller.removeById(id, resp);
+                    return;
+                }
             }
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
         } catch (Exception e) {
